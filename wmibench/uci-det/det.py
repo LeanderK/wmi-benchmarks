@@ -471,6 +471,9 @@ class DET:
         weight = self.root.weight2smt()
         return domain, support, weight
 
+    def size(self):
+        return len(self.root.get_internal_nodes())
+
     @staticmethod
     def compute_tree_error(tree):
         return fsum([l.error for l in tree.get_leaves()])

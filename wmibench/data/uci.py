@@ -1,7 +1,18 @@
 
 import numpy as np
+import os
 from pysmt.shortcuts import BOOL, LE, Plus, REAL, Real, Symbol, Times, reset_env
 from string import ascii_letters
+
+from wmibench import wmibench_path
+
+# full UCI suite sorted by increasing number of features
+EXPERIMENTS = {'small' : ['balance-scale', 'iris', 'cars', 'diabetes', 'breast-cancer',
+                          'glass2', 'glass', 'breast', 'solar', 'cleve', 'hepatitis'],
+               'big' : ['heart', 'australian', 'crx', 'german', 'german-org', 'auto',
+                        'anneal-U']}
+
+DATAFOLDER = os.path.join(wmibench_path, 'data/uci-datasets')
 
 
 def read_feats(path):
@@ -68,3 +79,43 @@ def read_data(path, feats):
                 data.append(row)
 
     return np.array(data)
+
+def generate_uci_loop(root_folder, uci_to_pywmi):
+    latex_tab = ['\\begin{tabular}{|l|c|c|c|c|c|}', '\\hline',
+                 'Dataset & $|\\allA|$ & $|\\allx|$ & \\# Train & \\# Valid & Size \\\\',                 
+                 '\\hline']
+
+    for size in EXPERIMENTS:
+        benchmark_folder = os.path.join(root_folder, f'{size}')
+
+        if not os.path.isdir(benchmark_folder):
+            os.mkdir(benchmark_folder)
+
+        for exp in EXPERIMENTS[size]:
+            # fresh pysmt environment
+            reset_env()
+    
+            density_path = os.path.join(benchmark_folder, f'{exp}.json')
+
+            if os.path.isfile(density_path):
+                print(f"{density_path} exists. Skipping.")
+                continue
+
+            print(f"{exp} : Parsing data")
+            featfile = os.path.join(DATAFOLDER, f'{exp}.features')
+            feats = read_feats(featfile)
+            train = read_data(os.path.join(DATAFOLDER, f'{exp}.train.data'), feats)
+            valid = read_data(os.path.join(DATAFOLDER, f'{exp}.valid.data'), feats)
+            print(f"{exp} : Training model & generating queries")                        
+            density, size = uci_to_pywmi(feats, train, valid)
+            density.to_file(density_path)  # Save to file
+
+            nbools = len([v for v in feats if v.symbol_type() == BOOL])
+            nreals = len([v for v in feats if v.symbol_type() == REAL])
+            latex_tab.append(f'{exp} & {nbools} & {nreals} & {len(train)} & {len(valid)} & {size} \\\\')
+
+
+    latex_tab.append('\\hline \\end{tabular}')
+    latex_tab_path = os.path.join(root_folder, 'table.tex')
+    with open(latex_tab_path, 'w') as f:
+        f.write('\n'.join(latex_tab))
