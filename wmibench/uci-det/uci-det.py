@@ -1,4 +1,3 @@
-
 from det import DET
 import os
 from pywmi import Density
@@ -7,8 +6,8 @@ from sys import argv
 from wmibench.data.synthetic import generate_random_queries
 from wmibench.data.uci import generate_uci_loop
 
-def generate(nmin, nmax, nqueries, qhardness, root_folder, seed):
 
+def generate(nmin, nmax, nqueries, qhardness, root_folder, seed):
     def uci_to_pywmi(feats, train, valid):
         det = DET(feats, nmin, nmax)
         det.grow_full_tree(train)
@@ -16,7 +15,7 @@ def generate(nmin, nmax, nqueries, qhardness, root_folder, seed):
 
         domain, support, weight = det.to_pywmi()
         queries = generate_random_queries(domain, nqueries, qhardness, seed,
-                                          support=support)            
+                                          support=support)
         density = Density(domain, support, weight, queries)
         return density, det.size()
 

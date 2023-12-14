@@ -11,7 +11,6 @@ from pywmi import Density, Domain
 
 
 class ModelGenerator:
-
     TEMPL_REALS = "x_{}"
     TEMPL_BOOLS = "A_{}"
 
@@ -28,13 +27,13 @@ class ModelGenerator:
     MAX_SRF = 4
 
     def __init__(
-        self,
-        n_reals,
-        n_bools,
-        seedn=None,
-        templ_bools=TEMPL_BOOLS,
-        templ_reals=TEMPL_REALS,
-        initial_bounds=DOMAIN_BOUNDS,
+            self,
+            n_reals,
+            n_bools,
+            seedn=None,
+            templ_bools=TEMPL_BOOLS,
+            templ_reals=TEMPL_REALS,
+            initial_bounds=DOMAIN_BOUNDS,
     ):
         assert n_reals + n_bools > 0
 
