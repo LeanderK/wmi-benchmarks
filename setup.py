@@ -1,8 +1,6 @@
-
-
+from os import path
 
 from setuptools import setup, find_packages
-from os import path
 
 NAME = 'wmibench'
 DESCRIPTION = 'Unified benchmark library for Weighted Model Integration.'
@@ -14,19 +12,22 @@ VERSION = "1.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'pysmt', 'pywmi'
+    'pysmt',
+    'pywmi',
+    'networkx',
+    'numpy',
+    'scipy',
 ]
 
 # What packages are optional?
 EXTRAS = {
-#        'sdd': ["pysdd"]
+    #        'sdd': ["pysdd"]
 }
 
 here = path.abspath(path.dirname(__file__))
 
 with open(path.join(here, "README.md")) as ref:
     long_description = ref.read()
-
 
 setup(
     name=NAME,
@@ -45,7 +46,7 @@ setup(
     ],
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(),
-#    packages=find_packages(exclude=('test', 'examples')),
+    #    packages=find_packages(exclude=('test', 'examples')),
     zip_safe=False,
     install_requires=REQUIRED,
     extras_require=EXTRAS
