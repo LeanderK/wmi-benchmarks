@@ -7,10 +7,13 @@ from os import path
 from random import choice, randint, random, sample, seed, uniform
 
 from pysmt.shortcuts import BOOL, LT, REAL, And, Bool, Ite, Not, Or, Plus, Pow, Real, Symbol, Times, is_sat
-from pywmi import Density, Domain
+
+
+from wmibench.io import Density
 
 
 class ModelGenerator:
+    
     TEMPL_REALS = "x_{}"
     TEMPL_BOOLS = "A_{}"
 
@@ -234,7 +237,6 @@ def main():
     gen = ModelGenerator(n_reals, n_bools, seedn=seedn, templ_bools=templ_bools, templ_reals=templ_reals)
 
     # generate models
-    bools = [templ_bools.format(i) for i in range(n_bools)]
     print("Starting creating models")
     time_start = time.time()
     digits = int(log10(n_models)) + 1
@@ -242,8 +244,8 @@ def main():
     for i in range(n_models):
         support, bounds = gen.generate_support_tree(depth)
         weight = gen.generate_weights_tree(depth, nonnegative=True)
-        domain = Domain.make(bools, bounds)
-        density = Density(domain, support, weight)
+        domain = {Symbol(v, REAL) : bounds[v] for v in bounds}
+        density = Density(support, weight, domain=domain)
         density_file = path.join(output_dir, template.format(n=i + 1, d=digits))
         density.to_file(density_file)
         print("\r" * 100, end="")
