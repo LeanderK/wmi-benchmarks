@@ -13,11 +13,12 @@ VERSION = "1.0"
 # What packages are required for this module to be executed?
 REQUIRED = [
     'codegen',
-    'pysmt',
+    'pandas',
+    'pysmt @ git+https://git@github.com/masinag/pysmt@nrat#egg=pysmt',
     'networkx',
     'numpy',
     'scipy',
-    'sklearn',
+    'scikit-learn',
     'z3-solver'
 ]
 
