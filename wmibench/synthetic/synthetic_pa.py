@@ -172,6 +172,7 @@ class ModelGenerator:
 
 
 def parse_args():
+
     def positive_0(value):
         ivalue = int(value)
         if ivalue < 0:
@@ -213,18 +214,7 @@ def check_input_output(output_path, output_dir):
     print("Created folder '{}'".format(output_dir))
 
 
-def main():
-    args = parse_args()
-
-    output = args.output
-    n_reals = args.reals
-    n_bools = args.booleans
-    depth = args.depth
-    n_models = args.models
-    seedn = args.seed
-
-    if seedn is None:
-        seedn = int(time.time())
+def generate_benchmark(output, n_reals, n_bools, depth, n_models, seedn=None):
 
     output_dir = "pa_r{}_b{}_d{}_m{}_s{}".format(n_reals, n_bools, depth, n_models, seedn)
     output_dir = path.join(output, output_dir)
@@ -258,4 +248,15 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+
+    args = parse_args()
+
+    if args.seed is None:
+        args.seed = int(time.time())
+
+    generate_benchmark(args.output,
+                       args.reals,
+                       args.booleans,
+                       args.depth,
+                       args.models,
+                       args.seed)
