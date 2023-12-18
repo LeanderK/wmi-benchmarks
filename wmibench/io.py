@@ -6,8 +6,12 @@ import pysmt.shortcuts as smt
 from pysmt.fnode import FNode
 from pysmt.operators import POW, IMPLIES
 
+"""
+Original code from: https://github.com/weighted-model-integration/pywmi
+Copyright: Samuel Kolb
 
 
+"""
 
 class Density:
 
