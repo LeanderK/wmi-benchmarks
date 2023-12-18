@@ -4,7 +4,6 @@ from math import fsum
 import numpy as np
 
 from pysmt.shortcuts import And, BOOL, LE, Ite, Not, Or, REAL, Real, Symbol, serialize, Times
-from pywmi import Domain
 
 LOG_ZERO = 1e-3
 
@@ -222,17 +221,12 @@ class Node:
     '''
 
     def bounds2domain(self):
-        bvars = []
-        cvars = []
-        cbounds = []
+        domain = dict()
         for var in self.bounds:
             if var.symbol_type() == REAL:
-                cvars.append(var.symbol_name())
-                cbounds.append(tuple(self.bounds[var]))
-            else:
-                bvars.append(var.symbol_name())
+                domain[var] = list(self.bounds[var])
 
-        return Domain.make(bvars, cvars, cbounds)
+        return domain
 
     def bounds2smt(self):
         formula = []
