@@ -6,7 +6,7 @@ from parse import Encoder
 from pysmt.smtlib.parser import get_formula as stream_to_pysmt
 from pysmt.shortcuts import And, Exp, Not, LE, LT, Ite, Minus
 from pysmt.shortcuts import Plus, Pow, REAL, Real, Symbol, Times
-from pywmi import Domain, Density
+from wmibench.io import Density
 from scipy.stats import norm
 from z3 import Solver
 
@@ -87,14 +87,11 @@ def convert(input_path, output_path=None):
     minority = z3_to_pysmt(p.sensitiveAttribute)
     hired = z3_to_pysmt(p.fairnessTarget)
 
-    queries = [minority, And(minority, hired), And(Not(minority), hired)]
+    queries = [minority,
+               And(minority, hired),
+               And(Not(minority), hired)]
 
-    bvars = []
-    cvars = []
-    cbounds = []
-    
-    domain = Domain.make(bvars, cvars, cbounds)
-    density = Density(domain, support, weight, queries)
+    density = Density(support, weight, queries)
 
     if output_path is not None:
         density.to_file(output_path)
@@ -108,11 +105,11 @@ if __name__ == '__main__':
     from sys import argv
 
     if len(argv) != 2:
-        print("USAGE: python3 fairsquare_pywmi PATH")
+        print("USAGE: python3 fairsquare_pysmt INPUT_PATH")
         exit(1)
 
-    path = argv[1]
-    output_path = path + '_density.json'
-    convert(path, output_path)
+    input_path = argv[1]
+    output_path = input_path + '_density.json'
+    convert(input_path, output_path)
 
 
