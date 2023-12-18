@@ -12,17 +12,17 @@ VERSION = "1.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
+    'codegen',
     'pysmt',
-    'pywmi',
     'networkx',
     'numpy',
     'scipy',
+    'sklearn',
+    'z3-solver'
 ]
 
 # What packages are optional?
-EXTRAS = {
-    #        'sdd': ["pysdd"]
-}
+EXTRAS = {}
 
 here = path.abspath(path.dirname(__file__))
 
@@ -46,7 +46,6 @@ setup(
     ],
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(),
-    #    packages=find_packages(exclude=('test', 'examples')),
     zip_safe=False,
     install_requires=REQUIRED,
     extras_require=EXTRAS
