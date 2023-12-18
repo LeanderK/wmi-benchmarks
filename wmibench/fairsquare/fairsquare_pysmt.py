@@ -8,7 +8,7 @@ from pysmt.smtlib.parser import get_formula as stream_to_pysmt
 from scipy.stats import norm
 from z3 import Solver
 
-from parse import Encoder
+from wmibench.fairsquare.parse import Encoder
 from wmibench.io import Density
 
 
