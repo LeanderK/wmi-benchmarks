@@ -1,7 +1,7 @@
-from det import DET
 import os
 from sys import argv
 
+from det import DET
 from wmibench.data.synthetic import generate_random_queries
 from wmibench.data.uci import generate_uci_loop
 from wmibench.io import Density

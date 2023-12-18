@@ -8,12 +8,10 @@ from random import choice, randint, random, sample, seed, uniform
 
 from pysmt.shortcuts import BOOL, LT, REAL, And, Bool, Ite, Not, Or, Plus, Pow, Real, Symbol, Times, is_sat
 
-
 from wmibench.io import Density
 
 
 class ModelGenerator:
-    
     TEMPL_REALS = "x_{}"
     TEMPL_BOOLS = "A_{}"
 
@@ -234,7 +232,7 @@ def generate_benchmark(output, n_reals, n_bools, depth, n_models, seedn=None):
     for i in range(n_models):
         support, bounds = gen.generate_support_tree(depth)
         weight = gen.generate_weights_tree(depth, nonnegative=True)
-        domain = {Symbol(v, REAL) : bounds[v] for v in bounds}
+        domain = {Symbol(v, REAL): bounds[v] for v in bounds}
         density = Density(support, weight, domain=domain)
         density_file = path.join(output_dir, template.format(n=i + 1, d=digits))
         density.to_file(density_file)

@@ -1,4 +1,3 @@
-
 import fractions
 import json
 
@@ -13,6 +12,7 @@ Copyright: Samuel Kolb
 
 """
 
+
 class Density:
 
     def __init__(self, support, weight, queries=[], domain=None):
@@ -23,20 +23,18 @@ class Density:
         self.queries = queries
 
     def add_bounds(self):
+        if self.domain is None:
+            return
         bounds = []
-        if domain is not None:
-            for v in self.domain:
-                if v.symbol_type() == smt.REAL:
-                    bv = self.domain[v]
-                    if bounds is not None:
-                        lbv, ubv = bv
-                        if lbv is not None:
-                            bounds.append(smt.LE(smt.Real(lbv), v))
-                            if ubv is not None:
-                                bounds.append(smt.LE(v, smt.Real(ubv)))
+        for v, bv in self.domain.items():
+            if v.symbol_type() == smt.REAL and bv is not None:
+                lbv, ubv = bv
+                if lbv is not None:
+                    bounds.append(smt.LE(smt.Real(lbv), v))
+                if ubv is not None:
+                    bounds.append(smt.LE(v, smt.Real(ubv)))
 
-            self.support = smt.And(self.support, *bounds)
-
+        self.support = smt.And(self.support, *bounds)
 
     def get_state(self):
 
@@ -63,13 +61,12 @@ class Density:
             for vname, vtype, bounds in state["domain"]:
                 v = fmgr.get_or_create_symbol(vname, type_to_smt(vtype))
                 domain[v] = bounds
-            
+
         return cls(nested_to_smt(state["formula"]),
                    nested_to_smt(state["weights"]),
                    queries=[nested_to_smt(query)
                             for query in state["queries"]],
                    domain=domain)
-
 
     def to_file(self, filename):
         with open(filename, "w") as ref:
@@ -80,6 +77,7 @@ class Density:
         with open(filename) as ref:
             return cls.from_state(json.load(ref))
 
+
 def type_to_str(smt_type):
     if smt_type == smt.REAL:
         return "real"
@@ -89,18 +87,20 @@ def type_to_str(smt_type):
         return "bool"
     raise RuntimeError("No type corresponding to {}".format(smt_type))
 
+
 def type_to_smt(type_str):
     if type_str == "real":
         return smt.REAL
-    if smt_type == "int":
+    if type_str == "int":
         return smt.INT
-    if smt_type == "bool":
+    if type_str == "bool":
         return smt.BOOL
-    raise RuntimeError("No type corresponding to {}".format(smt_type))             
+    raise RuntimeError("No type corresponding to {}".format(type_str))
 
 
 def nested_to_smt(string):
     return SmtParser().parse_smt(string)
+
 
 def smt_to_nested(expression):
     # type: (FNode) -> str
@@ -113,9 +113,9 @@ def smt_to_nested(expression):
         Constants are represented as (const type name)
         Types can be: real, int, bool
     """
+
     def convert_children(op):
         return "({} {})".format(op, " ".join(smt_to_nested(arg) for arg in expression.args()))
-
 
     if expression.is_and():
         return convert_children("&")
@@ -207,9 +207,6 @@ def tokenized_string_to_ast(tokenized_string, operators=None):
     return root
 
 
-
-
-            
 class SmtParser(object):
     operators = ["ite", "^", "~", "&", "|", "*", "+", "-", "<=", "<", ">", ">=", "->", "=", "const", "var"]
 
@@ -282,18 +279,17 @@ class SmtParser(object):
             raise RuntimeError("Unrecognized node type '{}'".format(node.name))
 
 
-if __name__ == '__main__':
-
+def main():
     A = smt.Symbol('A', smt.BOOL)
     x = smt.Symbol('x', smt.REAL)
     y = smt.Symbol('y', smt.REAL)
 
     f = smt.And(A, smt.LE(smt.Real(0), x),
-                smt.LE(smt.Plus(x,y), smt.Real(1)))
+                smt.LE(smt.Plus(x, y), smt.Real(1)))
 
     w = smt.Real(666)
 
-    d = {x : (0,1), y: (0, None)}
+    d = {x: (0, 1), y: (0, None)}
 
     path = 'test.json'
 
@@ -301,3 +297,7 @@ if __name__ == '__main__':
     density.to_file(path)
 
     density2 = Density.from_file(path)
+
+
+if __name__ == '__main__':
+    main()
