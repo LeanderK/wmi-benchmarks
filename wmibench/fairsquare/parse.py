@@ -5,8 +5,8 @@ import ast
 
 import codegen
 
-import rotationmath as rm
-from z3extra import *
+import wmibench.fairsquare.rotationmath as rm
+from wmibench.fairsquare.z3extra import *
 
 
 # helpers
