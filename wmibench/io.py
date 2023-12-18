@@ -210,7 +210,6 @@ def tokenized_string_to_ast(tokenized_string, operators=None):
 
 
 class SmtParser(object):
-
     operators = ["ite", "^", "~", "&", "|", "*", "+", "-", "exp", "<=", "<", ">", ">=", "->", "=", "const", "var"]
 
     def __init__(self):

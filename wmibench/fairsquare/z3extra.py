@@ -1,12 +1,7 @@
-
 # credits
 # https://github.com/sedrews/fairsquare
 
 from z3 import *
-from fractions import Fraction
-import sys
-import io
-import math
 
 
 class AstRefKey:
@@ -35,14 +30,15 @@ def get_vars_(f):
 
     def collect(f):
         if is_const(f):
-            #XXX: total hack; Z3_OP_UNINTERPRETED stopped working with recent z3
-            #if f.decl().kind() == 2353 and not askey(f) in r:
+            # XXX: total hack; Z3_OP_UNINTERPRETED stopped working with recent z3
+            # if f.decl().kind() == 2353 and not askey(f) in r:
             #    r.add(askey(f))
             if f.decl().kind() == Z3_OP_UNINTERPRETED and not askey(f) in r:
                 r.add(askey(f))
         else:
             for c in f.children():
                 collect(c)
+
     collect(f)
     return r
 
@@ -67,15 +63,17 @@ def bigOr(l):
         return l[0]
     return Or(*l)
 
+
 def z3ToFrac(r):
-    assert(is_rational_value(r))
+    assert (is_rational_value(r))
     return r.as_fraction()
 
+
 def z3ToFloat(r):
-    #this is sometimes causing an error
-    #"OverflowError: long int too large to convert to float"
-    #assert(is_rational_value(r))
-    #return float(r.numerator_as_long()) / float(r.denominator_as_long())
+    # this is sometimes causing an error
+    # "OverflowError: long int too large to convert to float"
+    # assert(is_rational_value(r))
+    # return float(r.numerator_as_long()) / float(r.denominator_as_long())
     return float(r.as_decimal(100).strip('?'))
 
 
@@ -104,7 +102,8 @@ def refresh(v, id=None):
         return Real(n)
     elif is_bool(v):
         return Bool(n)
-    assert(False)
+    assert (False)
+
 
 """ get prime implicant of list ps of predicates w.r.t to e """
 
@@ -133,7 +132,7 @@ def primeImplicant(ps, e):
 
         i = i + 1
 
-    assert(s.check(bs) == unsat)
+    assert (s.check(bs) == unsat)
 
     # only take predicates in unsat core
     res = [btop[x] for x in s.unsat_core()]
@@ -160,7 +159,7 @@ def getPreds(e):
                 getPreds_(e_)
             return
 
-        assert(is_bool(e))
+        assert (is_bool(e))
 
         s.add(e)
 
@@ -170,11 +169,14 @@ def getPreds(e):
 
     return s
 
-def z3max(a,b):
+
+def z3max(a, b):
     return If(a > b, a, b)
 
-def z3min(a,b):
+
+def z3min(a, b):
     return If(a < b, a, b)
+
 
 """ evals a set of predicates on model m """
 
@@ -197,7 +199,8 @@ def evalPreds(preds, m):
 
 """ returns a DNF of phi with disjoint disjuncts -- use at your own risk """
 
-def exclusiveToDNF(phi,maxlen=None):
+
+def exclusiveToDNF(phi, maxlen=None):
     s = Solver()
     s.add(phi)
 
@@ -214,15 +217,15 @@ def exclusiveToDNF(phi,maxlen=None):
 
         # evaluate model --> get disjunct
         d = evalPreds(preds, m)
-        #print("size before", len(d))
+        # print("size before", len(d))
 
         # get prime implicant of disjunct
         d = primeImplicant(d, phiprime)
-        #print("size after", len(d))
+        # print("size after", len(d))
 
         # asser the negation of disjunct to avoid getting it again
         s.add(Not(bigAnd(d)))
-        phiprime = And(phiprime,Not(bigAnd(d)))
+        phiprime = And(phiprime, Not(bigAnd(d)))
 
         new_entry = bigAnd(d)
         res = res + [new_entry]
@@ -231,7 +234,6 @@ def exclusiveToDNF(phi,maxlen=None):
             if len(res) > maxlen:
                 return []
 
-
     # NOTE: sanity checking code, ensures DNF is equivalent to phi
 
     resphi = Or(*res)
@@ -239,26 +241,27 @@ def exclusiveToDNF(phi,maxlen=None):
     s.reset()
     s.add(Not(phi))
     s.add(resphi)
-    assert(s.check() == unsat)
+    assert (s.check() == unsat)
 
     s.reset()
     s.add(phi)
     s.add(Not(resphi))
-    assert(s.check() == unsat)
-    
+    assert (s.check() == unsat)
+
     # NOTE: Are the disjuncts disjoint?
     for i, dj in enumerate(res):
         for j in range(i):
             s.reset()
             s.add(openset(dj))
             s.add(openset(res[j]))
-            assert(s.check() == unsat)
+            assert (s.check() == unsat)
 
     return res
     # return dnf as list
 
 
 """ returns a DNF of phi -- use at your own risk """
+
 
 def toDNF(phi, maxlen=None):
     s = Solver()
@@ -268,7 +271,7 @@ def toDNF(phi, maxlen=None):
     preds = getPreds(phi)
 
     # disjuncts
-    #phiprime = phi
+    # phiprime = phi
     res = []
 
     while s.check() == sat:
@@ -277,22 +280,21 @@ def toDNF(phi, maxlen=None):
 
         # evaluate model --> get disjunct
         d = evalPreds(preds, m)
-        #print("size before", len(d))
+        # print("size before", len(d))
 
         # get prime implicant of disjunct
         d = primeImplicant(d, phi)
-        #print("size after", len(d))
+        # print("size after", len(d))
 
         # asser the negation of disjunct to avoid getting it again
         s.add(Not(bigAnd(d)))
-        #phiprime = And(phiprime,Not(bigAnd(d)))
+        # phiprime = And(phiprime,Not(bigAnd(d)))
 
         res = res + [bigAnd(d)]
 
         if maxlen is not None:
             if len(res) > maxlen:
                 return []
-
 
     # NOTE: sanity checking code, ensures DNF is equivalent to phi
 
@@ -301,15 +303,16 @@ def toDNF(phi, maxlen=None):
     s.reset()
     s.add(Not(phi))
     s.add(resphi)
-    assert(s.check() == unsat)
+    assert (s.check() == unsat)
 
     s.reset()
     s.add(phi)
     s.add(Not(resphi))
-    assert(s.check() == unsat)
-    
+    assert (s.check() == unsat)
+
     # return dnf as list
     return res
+
 
 """ turn to DNF and qelim each disjunct """
 
@@ -336,7 +339,7 @@ def qelimForallDNF(vs, e):
 
         dnf.append(qres)
 
-    #print("# of disjuncts", len(dnf))
+    # print("# of disjuncts", len(dnf))
     return Not(bigOr(dnf))
 
 
@@ -351,9 +354,10 @@ def qelim(vars, phi, exists=False):
 
     # try qe-light first
     q = tl(q).as_expr()
-    q =  t(q).as_expr()
+    q = t(q).as_expr()
 
     return simplify(q)
+
 
 """ one var at a time qelim """
 
@@ -365,10 +369,10 @@ def qelimForall(vars, phi):
     # try qe-light first
     res = tl(phi).as_expr()
 
-    #print("# of vars: ", len(vars))
+    # print("# of vars: ", len(vars))
     i = 1
     for v in vars:
-        #print(i, "eliminating", v)
+        # print(i, "eliminating", v)
 
         q = ForAll([v], res)
         t = Tactic('qe')
@@ -381,7 +385,9 @@ def qelimForall(vars, phi):
 
     return res
 
+
 """ removes all strict inequalities, replacing with inequalities """
+
 
 def close(phi):
     f = Tactic('nnf')(phi).as_expr()
@@ -391,22 +397,21 @@ def close(phi):
     for p in ps:
         if is_gt(p):
             newp = p.children()[0] >= p.children()[1]
-            rep.append((p,newp))
+            rep.append((p, newp))
 
         if is_lt(p):
             newp = p.children()[0] <= p.children()[1]
-            rep.append((p,newp))
+            rep.append((p, newp))
 
         if is_not(p):
             arg = p.children()[0]
             if is_ge(arg):
                 newp = arg.children()[1] >= arg.children()[0]
-                rep.append((p,newp))
+                rep.append((p, newp))
 
             if is_le(arg):
                 newp = arg.children()[1] <= arg.children()[0]
-                rep.append((p,newp))
-
+                rep.append((p, newp))
 
     res = substitute(f, rep)
 
@@ -414,6 +419,7 @@ def close(phi):
 
 
 """ removes all inequalities, replacing with strict inequalities """
+
 
 def openset(phi):
     f = Tactic('nnf')(phi).as_expr()
@@ -423,22 +429,21 @@ def openset(phi):
     for p in ps:
         if is_ge(p):
             newp = p.children()[0] > p.children()[1]
-            rep.append((p,newp))
+            rep.append((p, newp))
 
         if is_le(p):
             newp = p.children()[0] < p.children()[1]
-            rep.append((p,newp))
+            rep.append((p, newp))
 
         if is_not(p):
             arg = p.children()[0]
             if is_gt(arg):
                 newp = arg.children()[1] > arg.children()[0]
-                rep.append((p,newp))
+                rep.append((p, newp))
 
             if is_lt(arg):
                 newp = arg.children()[1] < arg.children()[0]
-                rep.append((p,newp))
-
+                rep.append((p, newp))
 
     res = substitute(f, rep)
 
