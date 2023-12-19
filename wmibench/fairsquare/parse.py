@@ -1,23 +1,28 @@
-
 # credits
 # https://github.com/sedrews/fairsquare
 
 import ast
+
 import codegen
-from z3 import *
-from z3extra import *
-import rotationmath as rm
+
+import wmibench.fairsquare.rotationmath as rm
+from wmibench.fairsquare.z3extra import *
+
+
 # helpers
 
 
 def name(node):
     return ast.dump(node).split("(")[0]
 
+
 # HACK:
 
 
 def isTrue(node):
     return "True" in ast.dump(node)
+
+
 # HACK:
 
 
@@ -92,6 +97,7 @@ def isMult(node):
 def isDiv(node):
     return name(node) == 'Div'
 
+
 def isSub(node):
     return name(node) == 'Sub'
 
@@ -107,7 +113,8 @@ def isEq(node):
 def isNotEq(node):
     return name(node) == 'NotEq'
 
-#Lt | LtE | Gt | GtE
+
+# Lt | LtE | Gt | GtE
 
 
 def isLt(node):
@@ -153,9 +160,9 @@ def makeBin(op, l, r):
     elif isDiv(op):
         return l / r
     elif isPow(op):
-        return l**r
+        return l ** r
     else:
-        assert(False and "Weird binary op")
+        assert (False and "Weird binary op")
 
 
 def makeUnary(op, e):
@@ -166,7 +173,7 @@ def makeUnary(op, e):
     elif isNot(op):
         return Not(e)
     else:
-        assert(False and "Weird unary op")
+        assert (False and "Weird unary op")
 
 
 def makeBool(op, *args):
@@ -175,7 +182,7 @@ def makeBool(op, *args):
     elif isOr(op):
         return Or(*args)
     else:
-        assert(False and "Weird bool op")
+        assert (False and "Weird bool op")
 
 
 def makeCompare(op, l, r):
@@ -192,7 +199,7 @@ def makeCompare(op, l, r):
     elif isNotEq(op):
         return l != r
     else:
-        assert(False)
+        assert (False)
 
 
 class Encoder(ast.NodeVisitor):
@@ -232,7 +239,7 @@ class Encoder(ast.NodeVisitor):
     def doSeq(self, seq, d):
         trans = []
         for s in seq:
-            #print "ENCODING", ast.dump(s)[0:200]
+            # print "ENCODING", ast.dump(s)[0:200]
             if isAssign(s):
                 t = self.visit_Assign(s, d)
                 trans.append(t)
@@ -251,7 +258,7 @@ class Encoder(ast.NodeVisitor):
                 continue
 
             else:
-                assert(False)
+                assert (False)
 
         res = simplify(And(*trans))
 
@@ -267,28 +274,28 @@ class Encoder(ast.NodeVisitor):
         zlhs = var(lhs, d[lhs])
 
         fname = rhs.func.id
-        
-        assert(zlhs not in self.vdist)
+
+        assert (zlhs not in self.vdist)
 
         if fname == 'gaussian':
             mean = evalAST(rhs.args[0])
             variance = evalAST(rhs.args[1])
             std_dev = RealVal(rm.sigfig_str(variance ** 0.5, 4))
 
-            assert(variance >= 0)
+            assert (variance >= 0)
 
             # We normalize all gaussian variables,
             # and let the program shift and scale them.
-            #self.vdist[zlhs] = ('G', mean, variance)
-          
+            # self.vdist[zlhs] = ('G', mean, variance)
+
             self.refresh(d, lhs)
             zlhs2 = var(lhs, d[lhs])
             self.refresh(d, lhs)
             zlhs3 = var(lhs, d[lhs])
-            
+
             self.vdist[zlhs] = ('G', 0, 1)
 
-            res = And(zlhs2 == zlhs*std_dev, zlhs3 == zlhs2+mean)
+            res = And(zlhs2 == zlhs * std_dev, zlhs3 == zlhs2 + mean)
 
             return res
 
@@ -300,8 +307,8 @@ class Encoder(ast.NodeVisitor):
             # sum of probs == 1
             l = evalAST(rhs.args[0])
             s = sum([a[2] for a in l])
-            
-            assert(abs(s-1.0) <= 0.00001)
+
+            assert (abs(s - 1.0) <= 0.00001)
 
             lbounds = [a_b_c[0] for a_b_c in step[1]]
             ubounds = [a_b_c1[1] for a_b_c1 in step[1]]
@@ -311,12 +318,12 @@ class Encoder(ast.NodeVisitor):
             return res
 
         else:
-            assert(False and "Supported distributions: gaussian")
+            assert (False and "Supported distributions: gaussian")
 
         return True
 
     def exprToZ3(self, e, d=None):
-        #print "we are here ", ast.dump(e)
+        # print "we are here ", ast.dump(e)
         if isBinOp(e):
             op = e.op
             zlhs = self.exprToZ3(e.left, d)
@@ -334,7 +341,7 @@ class Encoder(ast.NodeVisitor):
             return makeBool(e.op, zexprs)
 
         elif isCompareOp(e):
-            assert(len(e.ops) == 1)
+            assert (len(e.ops) == 1)
 
             op = e.ops[0]
             zlhs = self.exprToZ3(e.left, d)
@@ -351,7 +358,7 @@ class Encoder(ast.NodeVisitor):
                 return And(True)
             if isFalse(e):
                 return And(False)
-            
+
             if d is None:
                 n = var(e.id)
             else:
@@ -359,7 +366,7 @@ class Encoder(ast.NodeVisitor):
             return n
 
         else:
-            assert(False and ("Weird expression" + ast.dump(e)))
+            assert (False and ("Weird expression" + ast.dump(e)))
 
     def refresh(self, d, v):
         # print "--------->", d[v], self.gd[v]
@@ -367,11 +374,11 @@ class Encoder(ast.NodeVisitor):
         self.gd[v] = d[v]
 
     def visit_Assign(self, node, d):
-        #print "Processing Assign"
-        #print "Assign", ast.dump(node)[0:10]
-        #print "POPULATION MODEL: ", self.model
+        # print "Processing Assign"
+        # print "Assign", ast.dump(node)[0:10]
+        # print "POPULATION MODEL: ", self.model
 
-        assert(len(node.targets) == 1)
+        assert (len(node.targets) == 1)
 
         lhs = node.targets[0].id
         rhs = node.value
@@ -393,7 +400,7 @@ class Encoder(ast.NodeVisitor):
         # print "Call", ast.dump(node)[0:10]
 
         fn = node.func.id
-        assert(len(node.args) == 1)
+        assert (len(node.args) == 1)
 
         if fn == 'assume':
             res = self.exprToZ3(node.args[0], d)
@@ -412,7 +419,7 @@ class Encoder(ast.NodeVisitor):
             return True
 
         else:
-            assert(False and "Unrecognizable function call")
+            assert (False and "Unrecognizable function call")
 
     def createPhiNode(self, d, dt):
         # then branch constraints
@@ -445,9 +452,9 @@ class Encoder(ast.NodeVisitor):
         return (And(*phiT), And(*phiE))
 
     def visit_If(self, node, d):
-        #print "Processing If"
-        #print "If", ast.dump(node)[0:10]
-        
+        # print "Processing If"
+        # print "If", ast.dump(node)[0:10]
+
         zcond = self.exprToZ3(node.test, d)
 
         dt = d.copy()
@@ -456,16 +463,16 @@ class Encoder(ast.NodeVisitor):
 
         (zphiT, zphiE) = self.createPhiNode(d, dt)
 
-        #print "COND: ", zcond
-        #print "ZT: ", zthen
-        #print "ZELSE: ", zelse        
+        # print "COND: ", zcond
+        # print "ZT: ", zthen
+        # print "ZELSE: ", zelse
 
         resT = Implies(zcond, And(zthen, zphiT))
         resE = Implies(Not(zcond), And(zelse, zphiE))
         res = And(resT, resE)
         self.mutex.append(Or(Not(zphiT), Not(zphiE)))
 
-        #res = And(If(zcond, And(zthen, zphiT), And(zelse, zphiE)))
+        # res = And(If(zcond, And(zthen, zphiT), And(zelse, zphiE)))
 
         return res
 
