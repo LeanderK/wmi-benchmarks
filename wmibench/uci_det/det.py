@@ -345,7 +345,6 @@ class DET:
             iTree = Node(self, None, len(iTrain), iTrain, iBounds)
             cvTrees.append(iTree)
 
-        regularization = [0.0 for _ in range(len(trees) - 1)]
         for i, cvTree in enumerate(cvTrees):
             validation = cv_bins[i][1]
             alpha_cv_tree = cvTree.copynode()
