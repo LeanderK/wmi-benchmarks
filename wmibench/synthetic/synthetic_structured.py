@@ -7,9 +7,9 @@ import pysmt.shortcuts as smt
 
 from wmibench.io import Density
 
+
 def unit_hypercube_bounds(variables):
-    return {x : [0,1] for x in variables}
-    
+    return {x: [0, 1] for x in variables}
 
 
 def make_distinct_bounds(variables):
@@ -26,11 +26,10 @@ def make_distinct_bounds(variables):
 
 
 def xor(n):
-
     x = smt.Symbol('x', smt.REAL)
     xis = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
     variables = [x] + xis
-    
+
     terms = [x <= xi for xi in xis]
     xor = smt.FALSE()
     for term in terms:
@@ -43,7 +42,6 @@ def xor(n):
 
 
 def mutual_exclusive(n):
-    
     x = smt.Symbol('x', smt.REAL)
     xis = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
     variables = [x] + xis
@@ -62,9 +60,8 @@ def mutual_exclusive(n):
 
 
 def dual_paths(n):
-
     variables = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
-    
+
     terms = []
     for i in range(n):
         v1, v2 = random.sample(variables, 2)
@@ -74,13 +71,12 @@ def dual_paths(n):
     for i in range(n):
         paths.append(smt.And(*random.sample(terms, n)))
 
-    support = smt.Or(*paths) & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])    
+    support = smt.Or(*paths) & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1.0)
     return Density(support, weight, domain=unit_hypercube_bounds(variables))
 
 
 def dual_paths_distinct(n):
-
     variables = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
 
     terms = []
@@ -98,7 +94,6 @@ def dual_paths_distinct(n):
 
 
 def click_graph(n):
-
     def ind(c):
         return smt.Ite(c, smt.Real(1), smt.Real(0))
 
@@ -126,10 +121,9 @@ def click_graph(n):
 
 
 def univariate(n):
-
     variables = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
 
-    domain = {x : [-2, 2] for x in variables}
+    domain = {x: [-2, 2] for x in variables}
     support = smt.And(*[x > 0.5 for x in variables])
     weight = smt.Times(*[smt.Ite((x > -1) & (x < 1), smt.Ite(x < 0, x + smt.Real(1), -x + smt.Real(1)), smt.Real(0))
                          for x in variables])
@@ -156,7 +150,6 @@ def dual(n):
 
 
 def and_overlap(n):
-
     variables = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
     terms = [variables[i] <= variables[i + 1] for i in range(n - 1)]
     support = smt.And(*terms) & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
@@ -167,13 +160,13 @@ def and_overlap(n):
 def make_from_graph(graph):
     n = len(graph.nodes)
     variables = [smt.Symbol(f'x{i}', smt.REAL) for i in range(n)]
-    
+
     support = smt.And(*((variables[i] + 1 <= variables[j]) |
                         (variables[j] <= variables[i] - 1)
                         for i, j in graph.edges))
     support = support & smt.And(*[(x >= -1.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1)
-    domain = {x : [-1, 1] for x in variables}
+    domain = {x: [-1, 1] for x in variables}
     return Density(support, weight, domain=domain)
 
 
@@ -232,7 +225,6 @@ def get_problem(problem_name):
 
 
 def generate_benchmark(sizes, seeds, output_folder):
-
     for seed in seeds:
         for size in sizes:
             generator = get_problem(problem_name)
