@@ -5,7 +5,7 @@ from scipy.linalg import solve as solve_linear_system
 
 
 def generate_random_queries(domain, nqueries, qhardness, seed, support=None):
-    """Generates 'nqueries' oblique queries by sampling an hyperplane
+    """Generates 'nqueries' oblique queries by sampling a hyperplane
     intersecting with the axis-aligned bounding box in 'domain'.
 
     The number of variables max(1, N*Q), where
@@ -17,9 +17,13 @@ def generate_random_queries(domain, nqueries, qhardness, seed, support=None):
     queries = []
     i = 0
     np.random.seed(seed)
+    real_vars = []
+    bbox = []
+    for v, (l, u) in domain.items():
+        real_vars.append(v)
+        bbox.append((l, u))
+    nvars = len(real_vars)
     while i < nqueries:
-        bbox = [domain.var_domains[v] for v in domain.real_vars]
-        nvars = len(bbox)
         p = np.array([np.random.uniform(l, u) for l, u in bbox])
         # uniformly sampled orientation for the hyperplane
         o = np.random.uniform(0, 1, (nvars - 1, nvars))
@@ -36,7 +40,7 @@ def generate_random_queries(domain, nqueries, qhardness, seed, support=None):
             selected = [np.random.choice(nvars)]
 
         wx = [Times(Real(float(w[j])), x)
-              for j, x in enumerate(domain.get_real_symbols())
+              for j, x in enumerate(real_vars)
               if j in selected]
         query = LE(Plus(*wx), Real(1))
 

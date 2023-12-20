@@ -14,9 +14,20 @@ Copyright: Samuel Kolb
 
 
 class Density:
+    """Class representing a density, i.e., a WMI problem."""
 
-    def __init__(self, support, weight, queries=[], domain=None):
+    def __init__(self, support, weight, queries=None, domain=None):
+        """A density is a tuple (support, weight, queries, domain).
 
+        Args:
+            support (FNode): The support formula.
+            weight (FNode): The weight function
+            queries (Optional[List[FNode]]): A list of smt formulas representing WMI queries.
+            domain (dict[FNode, tuple[float, float]]): A dictionary mapping real variables to upper and lower bounds.
+        """
+
+        if queries is None:
+            queries = []
         self.domain = domain
         self.support = support
         self.weight = weight
