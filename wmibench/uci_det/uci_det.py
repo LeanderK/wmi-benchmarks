@@ -1,7 +1,7 @@
 import os
 from sys import argv
 
-from det import DET
+from wmibench.uci_det.det import DET
 from wmibench.data.synthetic import generate_random_queries
 from wmibench.data.uci import generate_uci_loop
 from wmibench.io import Density
@@ -27,7 +27,7 @@ def generate_benchmark(nmin, nmax, nqueries, qhardness, root_folder, seed):
 
 if __name__ == '__main__':
     if len(argv) != 6:
-        print("Usage: python3 uci-det.py N_MIN N_MAX NQUERIES QUERYHARDNESS SEED")
+        print("Usage: python3 uci_det.py N_MIN N_MAX NQUERIES QUERYHARDNESS SEED")
         exit(1)
 
     nmin = int(argv[1])
