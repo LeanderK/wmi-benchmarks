@@ -92,25 +92,6 @@ where:
 - `SEED` sets the seed number of the pseudo-random number generator.
 
 
-### Sum-Product Networks
-
-Sum-Product Networks (see e.g. ["Sum-product networks: A new deep
-architecture"](https://ieeexplore.ieee.org/iel5/6114268/6130192/06130310.pdf)
-(Poon and Domingos, 2011)) with Gaussian and Categorical leaves are also considered.
-
-These benchmarks additionally require the `SPFlow` library
-([GitHub](https://github.com/SPFlow/SPFlow)).
-
-Run:
-
-`python3 uci-spn/uci-spn.py MIN_INST_SLICE NQUERIES QUERYHARDNESS SEED`
-
-where:
-
-- `MIN_INST_SLICE` is an hyperparameter of the greedy SPN learning algorithm;
-- `NQUERIES` and `QUERYHARDNESS` respectively control how many queries are generated and the ratio of variables involved in them;
-- `SEED` sets the seed number of the pseudo-random number generator.
-
 
 ## Fairness of probabilistic programs
 
