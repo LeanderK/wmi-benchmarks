@@ -231,7 +231,15 @@ def generate_benchmark(output, n_reals, n_bools, depth, n_models, seedn=None):
         support, bounds = gen.generate_support_tree(depth)
         weight = gen.generate_weights_tree(depth, nonnegative=True)
         domain = {Symbol(v, REAL): bounds[v] for v in bounds}
-        density = Density(support, weight, domain=domain)
+        for v in support.get_free_variables():
+            if v not in domain:
+                domain[v] = None
+
+        for v in weight.get_free_variables():
+            if v not in domain:
+                domain[v] = None
+        
+        density = Density(support, weight, domain)
         density_file = path.join(output_dir, template.format(n=i + 1, d=digits))
         density.to_file(density_file)
         print("\r" * 100, end="")

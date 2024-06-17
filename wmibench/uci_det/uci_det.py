@@ -16,7 +16,7 @@ def generate_benchmark(nmin, nmax, nqueries, qhardness, root_folder, seed):
         domain, support, weight = det.to_pywmi()
         queries = generate_random_queries(domain, nqueries, qhardness, seed,
                                           support=support)
-        density = Density(support, weight, queries, domain=domain)
+        density = Density(support, weight, domain, queries)
         return density, det.size()
 
     if not os.path.isdir(root_folder):

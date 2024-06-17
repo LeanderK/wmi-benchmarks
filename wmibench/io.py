@@ -16,26 +16,29 @@ Copyright: Samuel Kolb
 class Density:
     """Class representing a density, i.e., a WMI problem."""
 
-    def __init__(self, support, weight, queries=None, domain=None):
-        """A density is a tuple (support, weight, queries, domain).
+    def __init__(self, support, weight, domain, queries=None):
+        """A density is a tuple (support, weight, domain, queries).
 
         Args:
             support (FNode): The support formula.
-            weight (FNode): The weight function
+            weight (FNode): The weight function.
+            domain (dict[FNode, tuple[float, float]]): The variables. Numerical ones are optionally mapped to their bounds.
             queries (Optional[List[FNode]]): A list of smt formulas representing WMI queries.
-            domain (dict[FNode, tuple[float, float]]): A dictionary mapping real variables to upper and lower bounds.
+
         """
+
+        assert(all(v in domain for v in support.get_free_variables()))
+        assert(all(v in domain for v in weight.get_free_variables()))
 
         if queries is None:
             queries = []
-        self.domain = domain
         self.support = support
         self.weight = weight
+        self.domain = domain
         self.queries = queries
 
     def add_bounds(self):
-        if self.domain is None:
-            return
+        """Conjoin the bounds in self.domain to the support."""
         bounds = []
         for v, bv in self.domain.items():
             if v.symbol_type() == smt.REAL and bv is not None:
@@ -47,46 +50,44 @@ class Density:
 
         self.support = smt.And(self.support, *bounds)
 
-    def get_state(self):
 
-        if self.domain is None:
-            d = None
-        else:
-            d = [(v.symbol_name(), type_to_str(v.symbol_type()),
-                  bounds) for v, bounds in self.domain.items()]
+    def to_file(self, filename):
+        with open(filename, "w") as ref:
+            json.dump(self._get_state(), ref)
+
+    @classmethod
+    def from_file(cls, filename):
+        with open(filename) as ref:
+            return cls._from_state(json.load(ref))
+
+    def _get_state(self):
+
+
+        dstr = [(v.symbol_name(), type_to_str(v.symbol_type()), bounds)
+                for v, bounds in self.domain.items()]
+
         return {
-            "domain": d,
+            "domain": dstr,
             "formula": smt_to_nested(self.support),
             "weights": smt_to_nested(self.weight),
             "queries": [smt_to_nested(query) for query in self.queries]
         }
 
     @classmethod
-    def from_state(cls, state: dict):
+    def _from_state(cls, state: dict):
 
         fmgr = smt.get_env().formula_manager
-        if state["domain"] is None:
-            domain = None
-        else:
-            domain = dict()
-            for vname, vtype, bounds in state["domain"]:
-                v = fmgr.get_or_create_symbol(vname, type_to_smt(vtype))
-                domain[v] = bounds
+        domain = dict()
+        for vname, vtype, bounds in state["domain"]:
+            v = fmgr.get_or_create_symbol(vname, type_to_smt(vtype))
+            domain[v] = bounds
 
         return cls(nested_to_smt(state["formula"]),
                    nested_to_smt(state["weights"]),
+                   domain,
                    queries=[nested_to_smt(query)
-                            for query in state["queries"]],
-                   domain=domain)
+                            for query in state["queries"]])
 
-    def to_file(self, filename):
-        with open(filename, "w") as ref:
-            json.dump(self.get_state(), ref)
-
-    @classmethod
-    def from_file(cls, filename):
-        with open(filename) as ref:
-            return cls.from_state(json.load(ref))
 
 
 def type_to_str(smt_type):
@@ -304,11 +305,11 @@ def main():
 
     w = smt.Real(666)
 
-    d = {x: (0, 1), y: (0, None)}
+    domain = {x: (0, 1), y: (0, None), A: None}
 
     path = 'test.json'
 
-    density = Density(f, w, domain=d)
+    density = Density(f, w, domain)
     density.to_file(path)
 
     density2 = Density.from_file(path)

@@ -216,7 +216,11 @@ class Node:
         domain = dict()
         for var in self.bounds:
             if var.symbol_type() == REAL:
-                domain[var] = list(self.bounds[var])
+                vbounds = list(self.bounds[var])
+            else:
+                vbounds = None
+
+            domain[var] = vbounds
 
         return domain
 

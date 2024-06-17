@@ -37,8 +37,9 @@ def xor(n):
 
     support = xor & make_distinct_bounds(variables)
     weight = smt.Real(1.0)
+    domain = unit_hypercube_bounds(variables)
 
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    return Density(support, weight, domain)
 
 
 def mutual_exclusive(n):
@@ -56,7 +57,8 @@ def mutual_exclusive(n):
 
     support = disjunction & make_distinct_bounds(variables)
     weight = smt.Real(1.0)
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    domain = unit_hypercube_bounds(variables)
+    return Density(support, weight, domain)
 
 
 def dual_paths(n):
@@ -73,7 +75,8 @@ def dual_paths(n):
 
     support = smt.Or(*paths) & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1.0)
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    domain = unit_hypercube_bounds(variables)
+    return Density(support, weight, domain)
 
 
 def dual_paths_distinct(n):
@@ -90,7 +93,8 @@ def dual_paths_distinct(n):
 
     support = smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
     weight = smt.Plus(*paths)
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    domain = unit_hypercube_bounds(variables)
+    return Density(support, weight, domain)
 
 
 def click_graph(n):
@@ -117,7 +121,17 @@ def click_graph(n):
            for i in range(n) for j in (0, 1)]
 
     weight = smt.Times(*([w_sim_x] + w_sim + w_b_x + w_b))
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+
+    domain = unit_hypercube_bounds(variables)
+    for v in support.get_free_variables():
+        if v not in domain:
+            domain[v] = None
+
+    for v in weight.get_free_variables():
+        if v not in domain:
+            domain[v] = None
+
+    return Density(support, weight, domain)
 
 
 def univariate(n):
@@ -128,7 +142,7 @@ def univariate(n):
     weight = smt.Times(*[smt.Ite((x > -1) & (x < 1), smt.Ite(x < 0, x + smt.Real(1), -x + smt.Real(1)), smt.Real(0))
                          for x in variables])
 
-    return Density(support, weight, domain=domain)
+    return Density(support, weight, domain)
 
 
 def dual(n):
@@ -146,7 +160,8 @@ def dual(n):
 
     support = disjunction & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1)
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    domain = unit_hypercube_bounds(variables)
+    return Density(support, weight, domain)
 
 
 def and_overlap(n):
@@ -154,7 +169,8 @@ def and_overlap(n):
     terms = [variables[i] <= variables[i + 1] for i in range(n - 1)]
     support = smt.And(*terms) & smt.And(*[(x >= 0.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1)
-    return Density(support, weight, domain=unit_hypercube_bounds(variables))
+    domain = unit_hypercube_bounds(variables)
+    return Density(support, weight, domain)
 
 
 def make_from_graph(graph):
@@ -167,7 +183,7 @@ def make_from_graph(graph):
     support = support & smt.And(*[(x >= -1.0) & (x <= 1.0) for x in variables])
     weight = smt.Real(1)
     domain = {x: [-1, 1] for x in variables}
-    return Density(support, weight, domain=domain)
+    return Density(support, weight, domain)
 
 
 def tpg_star(n):

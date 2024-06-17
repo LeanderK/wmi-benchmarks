@@ -89,7 +89,10 @@ def convert(input_path, output_path=None):
                And(minority, hired),
                And(Not(minority), hired)]
 
-    density = Density(support, weight, queries)
+    variables = set.union(support.get_free_variables(),
+                          weight.get_free_variables())
+    domain = {v : None for v in variables}
+    density = Density(support, weight, domain, queries)
 
     if output_path is not None:
         density.to_file(output_path)
