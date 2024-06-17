@@ -19,9 +19,12 @@ def generate_random_queries(domain, nqueries, qhardness, seed, support=None):
     np.random.seed(seed)
     real_vars = []
     bbox = []
-    for v, (l, u) in domain.items():
-        real_vars.append(v)
-        bbox.append((l, u))
+    for v, bounds in domain.items():
+        if bounds is not None:
+            (l, u) = bounds
+            real_vars.append(v)
+            bbox.append((l, u))
+
     nvars = len(real_vars)
     while i < nqueries:
         p = np.array([np.random.uniform(l, u) for l, u in bbox])
