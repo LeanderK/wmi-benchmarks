@@ -148,7 +148,7 @@ def smt_to_nested(expression):
         return convert_children("+")
     if expression.is_minus():
         return convert_children("-")
-    if expression.is_exp():
+    if hasattr(expression, "is_exp") and expression.is_exp():
         return convert_children("exp")
     if expression.is_ite():
         return convert_children("ite")
